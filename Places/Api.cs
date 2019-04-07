@@ -1,9 +1,5 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using Newtonsoft.Json;
 
@@ -16,8 +12,7 @@ namespace Places
 
         static Api()
         {
-            Client = new HttpClient();
-            Client.BaseAddress = new Uri("https://maps.googleapis.com/maps/api/place/");
+            Client = new HttpClient {BaseAddress = new Uri("https://maps.googleapis.com/maps/api/place/")};
         }
 
 
@@ -29,16 +24,18 @@ namespace Places
         /// <param name="longitude">Longitude of user.</param>
         /// <param name="category">Category of stores to find.</param>
         /// <param name="open">Should find only open stores.</param>
-        async public static Task<Response> GetPlaces(double latitude, double longitude, Category category, bool onlyOpen)
+        public static async Task<Response> GetPlaces(double latitude, double longitude, Category category, bool onlyOpen)
         {
             string url = null;
             if (onlyOpen)
             {
-                url = String.Format("nearbysearch/json?key={0}&location={1},{2}&sensor=true&rankby=distance&types={3}&opennow", AppSecret, latitude, longitude, category.ToString());
+                url =
+                    $"nearbysearch/json?key={AppSecret}&location={latitude},{longitude}&sensor=true&rankby=distance&types={category.ToString()}&opennow";
             }
             else
             {
-                url = String.Format("nearbysearch/json?key={0}&location={1},{2}&sensor=true&rankby=distance&types={3}", AppSecret, latitude, longitude, category.ToString());
+                url =
+                    $"nearbysearch/json?key={AppSecret}&location={latitude},{longitude}&sensor=true&rankby=distance&types={category.ToString()}";
             }
             try
             {
@@ -47,10 +44,8 @@ namespace Places
                 {
                     return JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync(), typeof(Response)) as Response;
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
             catch
             {
@@ -63,19 +58,17 @@ namespace Places
         /// Gets another set of 20 places that match a previous query.
         /// </summary>
         /// <param name="token">Next Token to fetch.</param>
-        async public static Task<Response> GetNext(string token)
+        public static async Task<Response> GetNext(string token)
         {
             try
             {
-                var resp = await Client.GetAsync(String.Format("nearbysearch/json?key={0}&sensor=true&pagetoken={1}", AppSecret, token));
+                var resp = await Client.GetAsync($"nearbysearch/json?key={AppSecret}&sensor=true&pagetoken={token}");
                 if (resp.IsSuccessStatusCode)
                 {
                     return JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync(), typeof(Response)) as Response;
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
             catch
             {
@@ -90,19 +83,18 @@ namespace Places
         /// <param name="latitude">Latitude of user.</param>
         /// <param name="longitude">Longitude of user.</param>
         /// <param name="query">Search query</param>
-        async public static Task<Response> SearchPlaces(double latitude, double longitude, string query)
+        public static async Task<Response> SearchPlaces(double latitude, double longitude, string query)
         {
             try
             {
-                var resp = await Client.GetAsync(String.Format("nearbysearch/json?key={0}&location={1},{2}&sensor=true&rankby=distance&keyword={3}", AppSecret, latitude, longitude, query));
+                var resp = await Client.GetAsync(
+                    $"nearbysearch/json?key={AppSecret}&location={latitude},{longitude}&sensor=true&rankby=distance&keyword={query}");
                 if (resp.IsSuccessStatusCode)
                 {
                     return JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync(), typeof(Response)) as Response;
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
             catch
             {
@@ -114,19 +106,12 @@ namespace Places
         /// Get full details of specified place ID.
         /// </summary>
         /// <param name="placeId">ID of place.</param>
-        async public static Task<Detail> GetDetails(string placeId)
+        public static async Task<Detail> GetDetails(string placeId)
         {
             try
             {
-                var resp = await Client.GetAsync(String.Format("details/json?key={0}&placeid={1}&sensor=true", AppSecret, placeId));
-                if (resp.IsSuccessStatusCode)
-                {
-                    return (JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync(), typeof(Response)) as Response).Detail;
-                }
-                else
-                {
-                    return null;
-                }
+                var resp = await Client.GetAsync($"details/json?key={AppSecret}&placeid={placeId}&sensor=true");
+                return resp.IsSuccessStatusCode ? (JsonConvert.DeserializeObject(await resp.Content.ReadAsStringAsync(), typeof(Response)) as Response)?.Detail : null;
             }
             catch
             {

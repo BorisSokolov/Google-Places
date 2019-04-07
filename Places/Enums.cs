@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Places
+﻿namespace Places
 {
     public enum Category
     {

@@ -20,7 +20,7 @@ namespace Places
         [JsonProperty("geometry")]
         public Geometry Geo { get; set; }       // Co-ordinates
 
-        async public Task<Detail> GetDetails()
+        public async Task<Detail> GetDetails()
         {
             return await Api.GetDetails(this.PlaceId);
         }
